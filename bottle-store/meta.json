@@ -1,0 +1,5 @@
+{
+  "name": "Bottle Store",
+  "description": "Bottle store stock management system with sales, purchases, inventory, and reports.",
+  "uses": "Retail, inventory management, POS"
+}
