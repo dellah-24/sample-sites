@@ -1,0 +1,5 @@
+{
+  "name": "School Website and Portal",
+  "description": "Complete school website with public pages and a role-based portal for admin, teachers, registrar, bursar, and students. Includes gradebook, attendance, fees, and term registration with Supabase backend.",
+  "uses": "Education, school management, student portal"
+}

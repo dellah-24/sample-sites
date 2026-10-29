@@ -1,0 +1,2 @@
+// Portal page: applications (key "apps"). Receives the portal context c.
+portalViews.apps=async function(c){const{me,R,stu,adm,post,M,tile,studs,own,G,A,Fe,avg,pct,due,sm,all,ed}=c;const d=await all('applications');return `<h1>Applications</h1>${tbl(['Date','Student','Grade','Guardian','Contact','Status'],d.map(x=>tr([fmt(x.created_at),esc(x.student_name),esc(x.grade_level),esc(x.guardian_name),esc(x.email)+' '+esc(x.phone),esc(x.status||'new')])),0,ed('applications',[null,'student_name','grade_level','guardian_name',null,'status'],d))}`};

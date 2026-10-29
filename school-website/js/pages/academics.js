@@ -1,0 +1,2 @@
+// Public page: academics
+pages.academics=()=>`<section class="s"><div class="w"><h1>Academics</h1><div class="g">${card('🎒 Primary (Grades 1–6)','Literacy, numeracy, science and creative play.')}${card('📚 Junior Secondary (7–9)','Broad subjects with study skills and careers guidance.')}${card('🎓 Senior Secondary (10–12)','Sciences, commerce and arts pathways to exams and university.')}${card('⚽ Clubs &amp; sport','Robotics, debate, football, athletics, music and drama.')}</div></div></section>`;

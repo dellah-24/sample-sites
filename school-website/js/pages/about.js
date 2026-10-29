@@ -1,0 +1,2 @@
+// Public page: about
+pages.about=()=>`<section class="s"><div class="w"><h1>About us</h1><p style="max-width:40em">Sample School was founded on one belief: every learner has strengths worth building. We pair strong academics with sport, arts and service, so students leave confident and kind.</p><div class="g">${card('🎯 Our mission','To nurture capable, curious and caring young people.')}${card('💎 Our values','Respect, Curiosity, Integrity, Service.')}${card('🏫 Our campus','Science labs, a library, computer suite, sports field and art studio.')}</div></div></section>`;

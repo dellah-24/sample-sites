@@ -1,0 +1,2 @@
+// Public page: staff
+pages.staff=()=>`<section class="s"><div class="w"><h1>Our staff</h1><div class="g">${[['Head Teacher','Dr. A. Mensah'],['Deputy Head','Mrs. B. Khan'],['Head of Sciences','Mr. C. Adeyemi'],['Registrar','Ms. D. Lopez'],['Bursar','Mr. E. Fraser'],['Librarian','Ms. F. Ncube']].map(x=>`<div class="c st"><div class="av">${x[1].replace(/[^A-Z]/g,'').slice(-2)}</div><h3>${x[1]}</h3><p class="mu">${x[0]}</p></div>`).join('')}</div><p class="mu">Placeholder names. Replace with your staff.</p></div></section>`;

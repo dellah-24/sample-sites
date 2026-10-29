@@ -1,0 +1,2 @@
+// Portal page: users (key "users"). Receives the portal context c.
+portalViews.users=async function(c){const{me,R,stu,adm,post,M,tile,studs,own,G,A,Fe,avg,pct,due,sm,all,ed}=c;const us=(await sb.from('profiles').select('*').order('full_name')).data||[];return `<h1>Users and roles</h1>${tbl(['Name','Role'],us.map(u=>tr([esc(u.full_name),`<select data-role="${u.id}">${['student','teacher','registrar','bursar','admin'].map(r=>`<option ${r==u.role?'selected':''}>${r}</option>`).join('')}</select>`])),0,ed('profiles',['full_name',null],us,1))}`};

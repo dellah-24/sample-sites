@@ -1,0 +1,28 @@
+// Spreadsheet-style tables: render, search, sort, CSV export, inline edit and delete.
+const RAW={},ED={grades:{subject:'text',term:'text',score:'number'},attendance:{day:'date',status:['present','late','absent']},fees:{term:'text',amount:'number',paid:'number'},announcements:{title:'text',body:'text'},applications:{student_name:'text',grade_level:'text',guardian_name:'text',status:['new','accepted','waitlisted','declined']},events:{event_date:'date',title:'text',location:'text'},profiles:{full_name:'text'},assessments:{name:'text',total_marks:'number',test_date:'date'},registrations:{year:'number',term:['Term 1','Term 2','Term 3'],class_name:'text',status:['pending','approved','rejected'],review_note:'text'}};
+const tbl=(h,rows,foot,ed)=>{if(ed)RAW[ed.t]=Object.fromEntries(ed.d.map(x=>[x.id,x]));const act=ed&&!ed.x;
+return `<div class="xt"${ed?` data-ed="${esc(JSON.stringify({t:ed.t,f:ed.f}))}"`:''}><div class="xb"><input type="search" placeholder="Search this table…" aria-label="Search table"><button class="btn o" data-csv style="color:inherit">⬇ Export CSV</button>${ed?'<span class="mu" style="font-size:.85em">✎ Double-click a cell to edit</span>':''}<span class="ct">${rows.length} row${rows.length==1?'':'s'}</span></div><div class="tw"><table><thead><tr><th class="rn">#</th>${h.map(x=>`<th>${x}</th>`).join('')}${act?'<th class="act">Actions</th>':''}</tr></thead><tbody>${rows.length?rows.map((r,i)=>r.replace('<tr>',`<tr${ed?` data-id="${esc(ed.d[i].id)}"`:''}><td class="rn"></td>`).replace(/<\/tr>$/,act?'<td class="act"><button class="ib" data-del title="Delete">🗑</button></td></tr>':'</tr>')).join(''):`<tr><td colspan="${h.length+1+(act?1:0)}" class="mu">No records yet.</td></tr>`}</tbody>${foot?`<tfoot><tr><td class="rn">Σ</td>${foot.map(x=>`<td>${x}</td>`).join('')}${act?'<td></td>':''}</tr></tfoot>`:''}</table></div></div>`};
+function enhance(){document.querySelectorAll('.xt').forEach(t=>{const rs=[...t.querySelectorAll('tbody tr')],ed=t.dataset.ed?JSON.parse(t.dataset.ed):0;if(ed)rs.forEach(r=>r.dataset.id&&[...r.cells].forEach((c,i)=>{const k=ed.f[i-1];if(i&&k){c.dataset.k=k;c.classList.add('ed')}}));
+t.querySelectorAll('thead th').forEach((h,i)=>{if(!i)return;const c=rs.map(r=>r.cells[i]).filter(Boolean).map(x=>x.textContent.trim());if(c.length&&c.every(v=>/^-?[\d,.]+%?$|^–$/.test(v))){h.classList.add('n');t.querySelectorAll('tr').forEach(r=>r.cells[i]&&r.cells[i].classList.add('n'))}});
+t.querySelectorAll('tbody td').forEach(c=>{const v=c.textContent.trim();if(/^(present|late|absent|paid|pending|approved|rejected)$/.test(v)&&!c.children.length)c.innerHTML=`<span class="bd ${v}">${v}</span>`})})}
+document.addEventListener('input',e=>{const t=e.target.closest('.xt');if(!t||e.target.type!='search')return;const q=e.target.value.toLowerCase();let n=0;t.querySelectorAll('tbody tr').forEach(r=>{const ok=r.textContent.toLowerCase().includes(q);r.hidden=!ok;if(ok)n++});t.querySelector('.ct').textContent=n+' row'+(n==1?'':'s')});
+document.addEventListener('dblclick',e=>{const c=e.target.closest('td.ed');if(!c||c.querySelector('.ei'))return;const t=c.closest('.xt'),ed=JSON.parse(t.dataset.ed),id=c.parentNode.dataset.id,k=c.dataset.k,ty=ED[ed.t][k],v=RAW[ed.t][id][k]??'';
+c.dataset.o=c.innerHTML;c.innerHTML=Array.isArray(ty)?`<select class="ei">${ty.map(o=>`<option ${o==v?'selected':''}>${o}</option>`).join('')}</select>`:`<input class="ei" type="${ty}" value="${esc(v)}" step="any">`;
+const i=c.querySelector('.ei');i.focus();let done=0;
+const fin=async ok=>{if(done)return;done=1;if(!ok||i.value==v){c.innerHTML=c.dataset.o;return}
+const r=await sb.from(ed.t).update({[k]:ty=='number'?+i.value:i.value}).eq('id',id).select();
+if(r.error||(r.data&&!r.data.length)){c.innerHTML=c.dataset.o;document.getElementById('pout').innerHTML=note(r.error?r.error.message:'You do not have permission to change this record.','err');return}
+flash='Saved.';keep=1;render()};
+i.addEventListener('keydown',x=>{if(x.key=='Enter')fin(1);if(x.key=='Escape')fin(0)});i.addEventListener('blur',()=>fin(1))});
+document.addEventListener('click',async e=>{const d=e.target.closest('[data-del]');
+if(d){if(!d.dataset.c){d.dataset.c=1;d.textContent='Sure?';setTimeout(()=>{d.dataset.c='';d.textContent='🗑'},3000);return}
+const ed=JSON.parse(d.closest('.xt').dataset.ed),r=await sb.from(ed.t).delete().eq('id',d.closest('tr').dataset.id).select();
+if(r.error||(r.data&&!r.data.length)){document.getElementById('pout').innerHTML=note(r.error?r.error.message:'You do not have permission to delete this record.','err');return}
+flash='Deleted.';keep=1;render();return}
+const h=e.target.closest('.xt th');
+if(h&&!h.matches('.rn,.act')){const t=h.closest('table'),i=h.cellIndex,d=h.dataset.d=='asc'?'desc':'asc',b=t.tBodies[0];t.querySelectorAll('th').forEach(x=>delete x.dataset.d);h.dataset.d=d;
+const v=c=>{const s=(c?c.textContent:'').trim();return /^-?[\d,.]+%?$/.test(s)?parseFloat(s.replace(/,/g,'')):(/\d{4}/.test(s)&&Date.parse(s))||s.toLowerCase()};
+[...b.rows].sort((x,y)=>{const a=v(x.cells[i]),c=v(y.cells[i]);return(a>c?1:a<c?-1:0)*(d=='asc'?1:-1)}).forEach(r=>b.appendChild(r))}
+if(e.target.dataset.csv!==undefined){const t=e.target.closest('.xt'),cell=c=>{const s=c.querySelector('select,input');return '"'+(s?s.value:c.textContent.trim()).replace(/"/g,'""')+'"'},
+rows=[[...t.querySelectorAll('thead th')].slice(1).filter(x=>!x.classList.contains('act')).map(x=>'"'+x.textContent+'"'),...[...t.querySelectorAll('tbody tr')].filter(r=>!r.hidden).map(r=>[...r.cells].slice(1).filter(c=>!c.classList.contains('act')).map(cell))];
+const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([rows.map(r=>r.join(',')).join('\n')],{type:'text/csv'}));a.download='sample-school.csv';a.click()}});

@@ -1,0 +1,11 @@
+-- Run after the other SQL files. Term registration: students register, the registrar (or admin) reviews.
+create table if not exists registrations(id bigint generated always as identity primary key,student_id uuid not null references profiles on delete cascade,term text not null check(term in('Term 1','Term 2','Term 3')),year int not null,class_name text,note text,status text not null default 'pending' check(status in('pending','approved','rejected')),review_note text,reviewed_by uuid,reviewed_at timestamptz,created_at timestamptz default now(),unique(student_id,term,year));
+alter table registrations enable row level security;
+drop policy if exists rg_sel on registrations;create policy rg_sel on registrations for select using(student_id=auth.uid() or app_role() in('registrar','admin'));
+drop policy if exists rg_ins on registrations;create policy rg_ins on registrations for insert with check((student_id=auth.uid() and status='pending') or app_role() in('registrar','admin'));
+drop policy if exists rg_upd on registrations;create policy rg_upd on registrations for update using(app_role() in('registrar','admin')) with check(app_role() in('registrar','admin'));
+drop policy if exists rg_del on registrations;create policy rg_del on registrations for delete using(app_role() in('registrar','admin') or (student_id=auth.uid() and status='pending'));
+create or replace function set_review() returns trigger language plpgsql as $$begin if new.status is distinct from old.status then new.reviewed_by=auth.uid(); new.reviewed_at=now(); end if; return new; end$$;
+drop trigger if exists t_set_review on registrations;create trigger t_set_review before update on registrations for each row execute function set_review();
+-- Demo data: pupil registered for Term 1 (approved) and Term 2 (pending); pupil2 for Term 1 (approved)
+insert into registrations(student_id,term,year,class_name,status) select p.id,v.t,extract(year from now())::int,'Grade 8',v.s from (values('pupil@sampleschool.test','Term 1','approved'),('pupil@sampleschool.test','Term 2','pending'),('pupil2@sampleschool.test','Term 1','approved')) v(e,t,s) join auth.users u on u.email=v.e join profiles p on p.id=u.id on conflict do nothing;
